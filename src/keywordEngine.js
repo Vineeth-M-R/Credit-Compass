@@ -43,7 +43,7 @@ export function getKeywordResponse(profile, userInput) {
 
   // Help / Greeting
   if (query.includes("hi") || query.includes("hello") || query.includes("hey") || query.includes("help") || query.includes("lexa")) {
-    return `Hello ${name}! I'm LEXA, your V Bank AI Assistant. You can ask me about your balance, recent spending, rewards, credit card payment options, or transferring funds.`;
+    return `Hello ${name}! I'm Credit Compass, your V Bank AI Assistant. You can ask me about your balance, recent spending, rewards, credit card payment options, or transferring funds.`;
   }
 
   // Default fallback response

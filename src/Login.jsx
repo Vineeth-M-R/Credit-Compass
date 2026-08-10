@@ -78,7 +78,7 @@ export default function Login({ onSelectProfile }) {
 
         {/* Footer */}
         <div className="mt-8 text-center text-[11px] text-stone-400 font-medium">
-          Insights & Banking Assistant Powered by LEXA
+          Insights & Banking Assistant Powered by Credit Compass
         </div>
       </div>
     </div>

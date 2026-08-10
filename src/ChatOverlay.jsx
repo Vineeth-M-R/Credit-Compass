@@ -299,7 +299,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
 
           {isTyping && (
             <div className="text-stone-500 text-xs italic font-medium pt-1">
-              LEXA is typing...
+              Credit Compass is typing...
             </div>
           )}
           <div ref={messagesEndRef} />
