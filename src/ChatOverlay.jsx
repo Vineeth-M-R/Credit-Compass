@@ -7,76 +7,50 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
   const [messages, setMessages] = React.useState([]);
   const [inputValue, setInputValue] = React.useState('');
   const [isTyping, setIsTyping] = React.useState(false);
+  const [currentStep, setCurrentStep] = React.useState('STEP_0');
   const messagesEndRef = React.useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Pre-loaded structured conversation steps based on exact user screenshots
-  const conversationTree = {
-    // Step 0 (Initial greeting)
-    0: {
-      text: `Hi ${profile?.name || 'Alex'}! What can I help you with today?`,
-      options: ["I'm looking for a new credit card."]
-    },
-    // Step 1
-    1: {
-      text: "Sure. Will you mostly use the card for everyday spending, business expenses, or travel?",
-      options: ["Travel, mostly"]
-    },
-    // Step 2
-    2: {
-      text: "Got it. Looks like travel is your top category, with most of your spending on flights and hotels. Dining, groceries, and everyday purchases come next.\n\nDoes that sound like a good picture of your spending?",
-      options: ["Yes, this sounds right", "Something looks incorrect"]
-    },
-    // Step 3
-    3: {
-      text: "Great. Let's find the rewards style that works for you. Which of these sounds most like you?",
-      options: [
-        "Travel + everyday rewards",
-        "Maximise travel booking rewards",
-        "Maximise hotel rewards"
-      ]
-    },
-    // Step 4
-    4: {
-      text: `Got it. Based on what you've shared, here are two Wells Fargo cards that could be a good fit.\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $95 annual fee and offers additional travel rewards and benefits\n\nHow do you feel about paying an annual fee for those added features?`,
-      options: [
-        "Yes, I'm open to an annual fee",
-        "No, I'd rather avoid any fee",
-        "Help me compare"
-      ]
-    },
-    // Step 5 (Final recommendation card)
-    5: {
-      text: "Sounds good. Based on your spending habits, the Autograph Journey® Card looks like a great fit.",
-      isCardRecommendation: true,
-      cardData: {
-        title: "Autograph Journey®",
-        image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=400", // card thumbnail
-        benefits: [
-          "5x points on hotels",
-          "4x points on airlines",
-          "3x points on restaurants and other travel"
-        ],
-        annualFee: "Includes a $95 annual fee"
-      }
-    }
+  // Preset Card Definitions
+  const autographJourneyCard = {
+    title: "Autograph Journey®",
+    subtitle: "WELLS FARGO AUTOGRAPH",
+    benefits: [
+      "5x points on hotels",
+      "4x points on airlines",
+      "3x points on restaurants and other travel"
+    ],
+    annualFee: "Includes a $100 annual fee"
   };
 
-  // Track conversation step state
-  const [stepIndex, setStepIndex] = React.useState(0);
+  const autographCard = {
+    title: "Autograph® Card",
+    subtitle: "WELLS FARGO AUTOGRAPH",
+    benefits: [
+      "3x points on dining, travel, gas & transit",
+      "3x points on popular streaming services",
+      "1x points on other purchases"
+    ],
+    annualFee: "No annual fee ($0)"
+  };
 
+  // Initialize Chat Flow
   React.useEffect(() => {
     if (isOpen) {
-      setStepIndex(0);
+      setCurrentStep('STEP_0');
       setMessages([
         {
           id: 1,
           sender: 'bot',
-          text: conversationTree[0].text,
-          options: conversationTree[0].options
+          text: `Hi ${profile?.name || 'Alex'}! What can I help you with today?`,
+          options: [
+            "I am looking for a new credit card",
+            "I am looking for a quick loan",
+            "I am looking to explore options I have with V bank"
+          ]
         }
       ]);
     }
@@ -89,9 +63,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
   }, [messages, isOpen]);
 
   const handleOptionSelect = (optionText) => {
-    const nextStep = stepIndex + 1;
-
-    // Add User message
+    // Append user selection message
     const userMsg = {
       id: Date.now(),
       sender: 'user',
@@ -103,28 +75,245 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
 
     setTimeout(() => {
       setIsTyping(false);
-      setStepIndex(nextStep);
+      processFlowLogic(optionText);
+    }, 450);
+  };
 
-      if (conversationTree[nextStep]) {
-        const step = conversationTree[nextStep];
-        const botMsg = {
-          id: Date.now() + 1,
-          sender: 'bot',
-          text: step.text,
-          options: step.options,
-          isCardRecommendation: step.isCardRecommendation,
-          cardData: step.cardData
-        };
-        setMessages((prev) => [...prev, botMsg]);
-      } else {
-        // Fallback or generic keyword response after flow completes
-        const responseText = getKeywordResponse(profile, optionText);
+  const processFlowLogic = (userChoice) => {
+    // -------------------------------------------------------------
+    // STEP 0: Initial Greeting
+    // -------------------------------------------------------------
+    if (currentStep === 'STEP_0') {
+      if (userChoice.includes("new credit card")) {
+        // Flow-A proceeds
+        setCurrentStep('STEP_1');
         setMessages((prev) => [
           ...prev,
-          { id: Date.now() + 1, sender: 'bot', text: responseText }
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Sure, will you mostly use the card for everyday spending, business expenses, or travel?",
+            options: [
+              "Everyday spending",
+              "Business expenses",
+              "Travel"
+            ]
+          }
+        ]);
+      } else {
+        // User chooses loan or explore options -> respond appropriately and guide back to Flow-A
+        let redirectionText = "";
+        if (userChoice.includes("loan")) {
+          redirectionText = "Quick loans are available with low interest rates! However, let's start by looking at your card options for your account.\n\nWill you mostly use a new card for everyday spending, business expenses, or travel?";
+        } else {
+          redirectionText = "V Bank offers checking, savings, loans, and reward cards. Let's explore credit card options first.\n\nWill you mostly use a card for everyday spending, business expenses, or travel?";
+        }
+
+        setCurrentStep('STEP_1');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: redirectionText,
+            options: [
+              "Everyday spending",
+              "Business expenses",
+              "Travel"
+            ]
+          }
         ]);
       }
-    }, 450);
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // STEP 1: Usage Category (Everyday / Business / Travel)
+    // -------------------------------------------------------------
+    if (currentStep === 'STEP_1') {
+      if (userChoice.includes("Travel")) {
+        // Suggestion 3 -> Flow-A proceeds
+        setCurrentStep('STEP_2');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Got it. Looks like travel is your top category, with most of your spending on flights and hotels. Dining, groceries and everyday purchases comes next.\n\nDoes that sound like a good picture of your spending?",
+            options: [
+              "Yes this sounds right",
+              "Something looks incorrect"
+            ]
+          }
+        ]);
+      } else if (userChoice.includes("Everyday")) {
+        // Suggestion 1 -> Flow-B (Everyday Rewards Card Flow)
+        setCurrentStep('STEP_4');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Got it. For everyday spending like groceries, dining out, and streaming, we have great cash rewards options.\n\nHere are two V bank cards that could be a good fit:\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $100 annual fee and offers additional rewards\n\nHow do you feel about paying an annual fee for those added features?",
+            options: [
+              "Yes, I'm open to annual fee",
+              "No, I'd rather avoid any fee",
+              "Help me compare"
+            ]
+          }
+        ]);
+      } else {
+        // Suggestion 2: Business expenses -> No recommendation, ask to explore URL
+        setCurrentStep('STEP_1_NO_REC');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "We don't have a direct business card recommendation for your account profile right now. Please explore www.v-bank/creditcards.com for more options.\n\nWould you like to explore personal card options instead?",
+            options: [
+              "Everyday spending",
+              "Travel"
+            ]
+          }
+        ]);
+      }
+      return;
+    }
+
+    // If redirected from Business option back to personal options
+    if (currentStep === 'STEP_1_NO_REC') {
+      if (userChoice.includes("Travel")) {
+        setCurrentStep('STEP_2');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Got it. Looks like travel is your top category, with most of your spending on flights and hotels. Dining, groceries and everyday purchases comes next.\n\nDoes that sound like a good picture of your spending?",
+            options: [
+              "Yes this sounds right",
+              "Something looks incorrect"
+            ]
+          }
+        ]);
+      } else {
+        setCurrentStep('STEP_4');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Got it. Based on what you've shared, here are two V bank cards that could be a good fit.\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $100 annual fee and offers additional travel rewards and benefits\n\nHow do you feel about paying an annual fee for those added features?",
+            options: [
+              "Yes, I'm open to annual fee",
+              "No, I'd rather avoid any fee",
+              "Help me compare"
+            ]
+          }
+        ]);
+      }
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // STEP 2: Confirm Spending Picture (Yes / Something looks incorrect)
+    // -------------------------------------------------------------
+    if (currentStep === 'STEP_2') {
+      // User chooses suggestion 1 or 2 -> Keep response same
+      setCurrentStep('STEP_3');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: "Great. Lets find the rewards style that works for you. Which of these sounds most like you?",
+          options: [
+            "Travel + everyday rewards",
+            "Maximise travel booking rewards",
+            "Maximize hotel rewards"
+          ]
+        }
+      ]);
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // STEP 3: Rewards style choice
+    // -------------------------------------------------------------
+    if (currentStep === 'STEP_3') {
+      // User can choose anything here -> Response remains same
+      setCurrentStep('STEP_4');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: `Got it based on what you've shared, here are two V bank cards that could be a good fit.\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $100 annual fee and offers additional travel rewards and benefits\n\nHow do you feel about paying an annual fee for those added features?`,
+          options: [
+            "Yes, I'm open to annual fee",
+            "No, I'd rather avoid any fee",
+            "Help me compare"
+          ]
+        }
+      ]);
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // STEP 4: Annual Fee Preference
+    // -------------------------------------------------------------
+    if (currentStep === 'STEP_4') {
+      if (userChoice.includes("Yes") || userChoice.includes("open")) {
+        // Suggestion 1 -> Recommend Autograph Journey Card
+        setCurrentStep('FINISHED');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Sounds good. Based on your spending habits, the Autograph Journey® Card looks like a great fit.",
+            isCardRecommendation: true,
+            cardData: autographJourneyCard
+          }
+        ]);
+      } else if (userChoice.includes("No") || userChoice.includes("avoid")) {
+        // Suggestion 2 -> Recommend Autograph Card (no fee)
+        setCurrentStep('FINISHED');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Sounds good. Based on your spending habits, the Autograph® Card looks like a great fit.",
+            isCardRecommendation: true,
+            cardData: autographCard
+          }
+        ]);
+      } else {
+        // Suggestion 3 -> Help me compare (Side by Side comparison)
+        setCurrentStep('FINISHED');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: "Here is a side by side comparison of both cards to help you decide:",
+            isSideBySideComparison: true,
+            cardA: autographCard,
+            cardB: autographJourneyCard
+          }
+        ]);
+      }
+      return;
+    }
+
+    // Default Fallback
+    const responseText = getKeywordResponse(profile, userChoice);
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now() + 1, sender: 'bot', text: responseText }
+    ]);
   };
 
   const handleFreeInputSend = () => {
@@ -143,16 +332,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
 
     setTimeout(() => {
       setIsTyping(false);
-      // Auto-advance if input matches initial prompt intent
-      if (stepIndex === 0 && inputCopy.toLowerCase().includes("credit card")) {
-        handleOptionSelect(inputCopy);
-      } else {
-        const responseText = getKeywordResponse(profile, inputCopy);
-        setMessages((prev) => [
-          ...prev,
-          { id: Date.now() + 1, sender: 'bot', text: responseText }
-        ]);
-      }
+      handleOptionSelect(inputCopy);
     }, 450);
   };
 
@@ -167,7 +347,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
         transition={{ duration: 0.2 }}
         className="fixed inset-0 z-50 bg-[#EAE8E3] flex flex-col max-w-md mx-auto overflow-hidden font-sans select-none"
       >
-        {/* Top Header Bar with back arrow & badge */}
+        {/* Top Header Bar */}
         <div className="pt-10 px-5 pb-3 flex items-center justify-between bg-[#EAE8E3]">
           <button
             onClick={onClose}
@@ -208,32 +388,21 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                         </div>
                       );
                     }
-                    if (paragraph.includes('Autograph Journey®')) {
-                      const parts = paragraph.split('Autograph Journey®');
-                      return (
-                        <p key={pIdx}>
-                          {parts[0]}
-                          <span className="font-bold">Autograph Journey®</span>
-                          {parts[1]}
-                        </p>
-                      );
-                    }
                     return <p key={pIdx}>{paragraph}</p>;
                   })}
 
-                  {/* Recommendation Card Component */}
+                  {/* Single Card Recommendation Widget */}
                   {msg.isCardRecommendation && (
                     <div className="mt-4 bg-[#F4F3EF] border border-[#E0DED7] rounded-3xl p-5 shadow-xs space-y-4">
-                      {/* Card Visual Graphic */}
                       <div className="flex flex-col items-center">
                         <div className="w-48 h-28 bg-gradient-to-r from-stone-900 via-stone-800 to-red-950 rounded-xl p-3 shadow-md text-white flex flex-col justify-between relative overflow-hidden">
                           <div className="flex justify-between items-start">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-red-400">WELLS FARGO</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-red-400">V BANK</span>
                             <span className="text-[8px] italic opacity-80">AUTOGRAPH</span>
                           </div>
                           <div className="w-6 h-4 bg-amber-400/80 rounded-xs" />
                           <div className="flex justify-between items-end">
-                            <span className="text-[8px] font-mono tracking-widest text-stone-300">MARY WELLS</span>
+                            <span className="text-[8px] font-mono tracking-widest text-stone-300">{profile?.name || 'ALEX'}</span>
                             <span className="text-[10px] font-bold tracking-tighter">VISA</span>
                           </div>
                         </div>
@@ -253,7 +422,6 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                         <p className="text-xs text-stone-600 mt-3 font-medium">{msg.cardData.annualFee}</p>
                       </div>
 
-                      {/* Action buttons */}
                       <div className="flex space-x-2.5 pt-1">
                         <button className="flex-1 py-2.5 rounded-full border border-stone-900 text-stone-900 text-xs font-bold hover:bg-stone-200 transition-all">
                           View details
@@ -264,15 +432,81 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                       </div>
 
                       <div className="text-center pt-1">
-                        <button className="text-xs text-purple-900 font-semibold underline hover:text-purple-700">
-                          Explore other Wells Fargo credit cards
-                        </button>
+                        <a href="https://www.v-bank/creditcards.com" target="_blank" rel="noreferrer" className="text-xs text-purple-900 font-semibold underline hover:text-purple-700">
+                          Explore other V Bank credit cards
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Side-by-Side Comparison Widget */}
+                  {msg.isSideBySideComparison && (
+                    <div className="mt-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Card A (Autograph Card - No Fee) */}
+                        <div className="bg-[#F4F3EF] border border-[#E0DED7] rounded-2xl p-3.5 shadow-xs flex flex-col justify-between">
+                          <div>
+                            <div className="w-full h-20 bg-stone-900 rounded-lg p-2 text-white flex flex-col justify-between mb-2">
+                              <span className="text-[8px] font-bold text-red-400">V BANK</span>
+                              <span className="text-[9px] font-mono">{msg.cardA.title}</span>
+                            </div>
+                            <h5 className="font-bold text-stone-900 text-xs mb-1.5">{msg.cardA.title}</h5>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mb-2">
+                              {msg.cardA.annualFee}
+                            </span>
+                            <ul className="space-y-1 text-[11px] text-stone-700">
+                              {msg.cardA.benefits.map((b, idx) => (
+                                <li key={idx} className="flex items-start">
+                                  <span className="mr-1 font-bold">•</span>
+                                  <span>{b}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <button className="w-full mt-3 py-1.5 rounded-full bg-stone-950 text-white text-xs font-bold hover:bg-stone-800">
+                            Apply
+                          </button>
+                        </div>
+
+                        {/* Card B (Autograph Journey - $100 Fee) */}
+                        <div className="bg-[#F4F3EF] border-2 border-purple-800 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between relative">
+                          <span className="absolute -top-2.5 right-3 bg-purple-900 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            Recommended
+                          </span>
+                          <div>
+                            <div className="w-full h-20 bg-gradient-to-r from-stone-900 via-stone-800 to-red-950 rounded-lg p-2 text-white flex flex-col justify-between mb-2">
+                              <span className="text-[8px] font-bold text-red-400">V BANK</span>
+                              <span className="text-[9px] font-mono">{msg.cardB.title}</span>
+                            </div>
+                            <h5 className="font-bold text-stone-900 text-xs mb-1.5">{msg.cardB.title}</h5>
+                            <span className="text-[10px] font-bold text-purple-900 bg-purple-50 px-2 py-0.5 rounded-md inline-block mb-2">
+                              {msg.cardB.annualFee}
+                            </span>
+                            <ul className="space-y-1 text-[11px] text-stone-700">
+                              {msg.cardB.benefits.map((b, idx) => (
+                                <li key={idx} className="flex items-start">
+                                  <span className="mr-1 font-bold">•</span>
+                                  <span>{b}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <button className="w-full mt-3 py-1.5 rounded-full bg-purple-900 text-white text-xs font-bold hover:bg-purple-800">
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-center pt-1">
+                        <a href="https://www.v-bank/creditcards.com" target="_blank" rel="noreferrer" className="text-xs text-purple-900 font-semibold underline hover:text-purple-700">
+                          Explore other V Bank credit cards
+                        </a>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                /* User Chat Message Bubble - Light Grey Pill shape exact match */
+                /* User Chat Message Bubble */
                 <div className="flex justify-end">
                   <div className="bg-[#DEDCD5] text-stone-900 rounded-full px-5 py-2.5 text-[14px] font-medium shadow-2xs max-w-[85%] text-right">
                     {msg.text}
@@ -280,7 +514,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                 </div>
               )}
 
-              {/* Exact Quick Response Pill Bars (Black outline rounded buttons) */}
+              {/* Quick Response Pill Bars */}
               {msg.options && (
                 <div className="flex flex-col items-end space-y-2.5 pt-2">
                   {msg.options.map((optionText, optIdx) => (
