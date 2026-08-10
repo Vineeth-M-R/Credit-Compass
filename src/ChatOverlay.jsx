@@ -63,6 +63,14 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
   }, [messages, isOpen]);
 
   const handleOptionSelect = (optionText) => {
+    // Clear options from all previous messages so they disappear once clicked
+    setMessages((prev) =>
+      prev.map((msg) => ({
+        ...msg,
+        options: null
+      }))
+    );
+
     // Append user selection message
     const userMsg = {
       id: Date.now(),
@@ -319,6 +327,14 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
   const handleFreeInputSend = () => {
     if (!inputValue.trim()) return;
 
+    // Clear options from all previous messages so they disappear once clicked/sent
+    setMessages((prev) =>
+      prev.map((msg) => ({
+        ...msg,
+        options: null
+      }))
+    );
+
     const userMsg = {
       id: Date.now(),
       sender: 'user',
@@ -332,7 +348,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
 
     setTimeout(() => {
       setIsTyping(false);
-      handleOptionSelect(inputCopy);
+      processFlowLogic(inputCopy);
     }, 450);
   };
 
