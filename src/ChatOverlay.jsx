@@ -37,6 +37,17 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
     annualFee: "No annual fee ($0)"
   };
 
+  const activeCashCard = {
+    title: "Active Cash® Card",
+    subtitle: "WELLS FARGO ACTIVE CASH",
+    benefits: [
+      "Unlimited 2% cash rewards on purchases",
+      "$200 cash rewards bonus offer",
+      "0% intro APR for 15 months"
+    ],
+    annualFee: "No annual fee and flat 2% cashback"
+  };
+
   // Initialize Chat Flow
   React.useEffect(() => {
     if (isOpen) {
@@ -141,7 +152,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
     if (currentStep === 'STEP_1') {
       if (userChoice.includes("Travel")) {
         // Suggestion 3 -> Flow-A proceeds
-        setCurrentStep('STEP_2');
+        setCurrentStep('FLOW_A_STEP_2');
         setMessages((prev) => [
           ...prev,
           {
@@ -155,18 +166,17 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       } else if (userChoice.includes("Everyday")) {
-        // Suggestion 1 -> Flow-B (Everyday Rewards Card Flow)
-        setCurrentStep('STEP_4');
+        // Suggestion 1 -> Flow-B (Everyday spending category flow)
+        setCurrentStep('FLOW_B_STEP_2');
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now() + 1,
             sender: 'bot',
-            text: "Got it. For everyday spending like groceries, dining out, and streaming, we have great cash rewards options.\n\nHere are two V bank cards that could be a good fit:\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $100 annual fee and offers additional rewards\n\nHow do you feel about paying an annual fee for those added features?",
+            text: "Got it, Looks like Everyday purchases is your top category, with most of your spending on Dining and groceries. Travel and flight related expenses comes next.\n\nDoes that sound like a good picture of your spending?",
             options: [
-              "Yes, I'm open to annual fee",
-              "No, I'd rather avoid any fee",
-              "Help me compare"
+              "Yes this sounds right",
+              "Something looks incorrect"
             ]
           }
         ]);
@@ -192,7 +202,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
     // If redirected from Business option back to personal options
     if (currentStep === 'STEP_1_NO_REC') {
       if (userChoice.includes("Travel")) {
-        setCurrentStep('STEP_2');
+        setCurrentStep('FLOW_A_STEP_2');
         setMessages((prev) => [
           ...prev,
           {
@@ -206,17 +216,16 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       } else {
-        setCurrentStep('STEP_4');
+        setCurrentStep('FLOW_B_STEP_2');
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now() + 1,
             sender: 'bot',
-            text: "Got it. Based on what you've shared, here are two V bank cards that could be a good fit.\n\n• Autograph® Card — no annual fee\n• Autograph Journey® Card — includes a $100 annual fee and offers additional travel rewards and benefits\n\nHow do you feel about paying an annual fee for those added features?",
+            text: "Got it, Looks like Everyday purchases is your top category, with most of your spending on Dining and groceries. Travel and flight related expenses comes next.\n\nDoes that sound like a good picture of your spending?",
             options: [
-              "Yes, I'm open to annual fee",
-              "No, I'd rather avoid any fee",
-              "Help me compare"
+              "Yes this sounds right",
+              "Something looks incorrect"
             ]
           }
         ]);
@@ -225,11 +234,10 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
     }
 
     // -------------------------------------------------------------
-    // STEP 2: Confirm Spending Picture (Yes / Something looks incorrect)
+    // FLOW-A: STEP 2 (Travel Spending Confirmation)
     // -------------------------------------------------------------
-    if (currentStep === 'STEP_2') {
-      // User chooses suggestion 1 or 2 -> Keep response same
-      setCurrentStep('STEP_3');
+    if (currentStep === 'FLOW_A_STEP_2') {
+      setCurrentStep('FLOW_A_STEP_3');
       setMessages((prev) => [
         ...prev,
         {
@@ -246,12 +254,9 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
       return;
     }
 
-    // -------------------------------------------------------------
-    // STEP 3: Rewards style choice
-    // -------------------------------------------------------------
-    if (currentStep === 'STEP_3') {
-      // User can choose anything here -> Response remains same
-      setCurrentStep('STEP_4');
+    // FLOW-A: STEP 3 (Rewards Style Choice)
+    if (currentStep === 'FLOW_A_STEP_3') {
+      setCurrentStep('FLOW_A_STEP_4');
       setMessages((prev) => [
         ...prev,
         {
@@ -268,12 +273,9 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
       return;
     }
 
-    // -------------------------------------------------------------
-    // STEP 4: Annual Fee Preference
-    // -------------------------------------------------------------
-    if (currentStep === 'STEP_4') {
+    // FLOW-A: STEP 4 (Annual Fee Choice & Card Recommendation)
+    if (currentStep === 'FLOW_A_STEP_4') {
       if (userChoice.includes("Yes") || userChoice.includes("open")) {
-        // Suggestion 1 -> Recommend Autograph Journey Card
         setCurrentStep('FINISHED');
         setMessages((prev) => [
           ...prev,
@@ -286,7 +288,6 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       } else if (userChoice.includes("No") || userChoice.includes("avoid")) {
-        // Suggestion 2 -> Recommend Autograph Card (no fee)
         setCurrentStep('FINISHED');
         setMessages((prev) => [
           ...prev,
@@ -299,7 +300,6 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       } else {
-        // Suggestion 3 -> Help me compare (Side by Side comparison)
         setCurrentStep('FINISHED');
         setMessages((prev) => [
           ...prev,
@@ -313,6 +313,42 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       }
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // FLOW-B: STEP 2 (Everyday Purchases Spending Confirmation)
+    // -------------------------------------------------------------
+    if (currentStep === 'FLOW_B_STEP_2') {
+      setCurrentStep('FLOW_B_STEP_3');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: "Great. Lets find the rewards style that works for you. Which of these sounds most like you?",
+          options: [
+            "Everyday rewards with cashback",
+            "Maximize reward points for Dining expenses"
+          ]
+        }
+      ]);
+      return;
+    }
+
+    // FLOW-B: STEP 3 (Everyday Rewards Style Choice & Final Card Recommendation)
+    if (currentStep === 'FLOW_B_STEP_3') {
+      setCurrentStep('FINISHED');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: `Got it based on what you've shared, here is our cashback V bank cards that could be a good fit.\n\n• Active Cash® Card — no annual fee and flat 2% cashback`,
+          isCardRecommendation: true,
+          cardData: activeCashCard
+        }
+      ]);
       return;
     }
 
@@ -387,7 +423,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
               {msg.sender === 'bot' ? (
                 <div className="text-[15px] leading-relaxed text-stone-900 font-normal space-y-3">
                   {msg.text.split('\n\n').map((paragraph, pIdx) => {
-                    if (paragraph.includes('Autograph® Card') || paragraph.includes('Autograph Journey® Card')) {
+                    if (paragraph.includes('Autograph® Card') || paragraph.includes('Autograph Journey® Card') || paragraph.includes('Active Cash® Card')) {
                       return (
                         <div key={pIdx} className="space-y-2.5 my-2 pl-1">
                           {paragraph.split('\n').map((line, lIdx) => {
@@ -414,7 +450,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                         <div className="w-48 h-28 bg-gradient-to-r from-stone-900 via-stone-800 to-red-950 rounded-xl p-3 shadow-md text-white flex flex-col justify-between relative overflow-hidden">
                           <div className="flex justify-between items-start">
                             <span className="text-[9px] font-bold uppercase tracking-wider text-red-400">V BANK</span>
-                            <span className="text-[8px] italic opacity-80">AUTOGRAPH</span>
+                            <span className="text-[8px] italic opacity-80">{msg.cardData.subtitle || 'ACTIVE CASH'}</span>
                           </div>
                           <div className="w-6 h-4 bg-amber-400/80 rounded-xs" />
                           <div className="flex justify-between items-end">
@@ -459,7 +495,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                   {msg.isSideBySideComparison && (
                     <div className="mt-4 space-y-3">
                       <div className="grid grid-cols-2 gap-3">
-                        {/* Card A (Autograph Card - No Fee) */}
+                        {/* Card A */}
                         <div className="bg-[#F4F3EF] border border-[#E0DED7] rounded-2xl p-3.5 shadow-xs flex flex-col justify-between">
                           <div>
                             <div className="w-full h-20 bg-stone-900 rounded-lg p-2 text-white flex flex-col justify-between mb-2">
@@ -484,7 +520,7 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                           </button>
                         </div>
 
-                        {/* Card B (Autograph Journey - $100 Fee) */}
+                        {/* Card B */}
                         <div className="bg-[#F4F3EF] border-2 border-purple-800 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between relative">
                           <span className="absolute -top-2.5 right-3 bg-purple-900 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                             Recommended
