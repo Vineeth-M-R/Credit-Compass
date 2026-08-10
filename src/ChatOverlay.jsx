@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Mic } from 'lucide-react';
+import { ChevronLeft, Mic, Info } from 'lucide-react';
 import { getKeywordResponse } from './keywordEngine';
 
-export default function ChatOverlay({ profile, isOpen, onClose }) {
+export default function ChatOverlay({ profile, isOpen, onClose, fromExplore }) {
   const [messages, setMessages] = React.useState([]);
   const [inputValue, setInputValue] = React.useState('');
   const [isTyping, setIsTyping] = React.useState(false);
@@ -60,12 +60,12 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           options: [
             "I am looking for a new credit card",
             "I am looking for a quick loan",
-            "I am looking to explore options I have with V bank"
+            fromExplore ? "Which card is best for me?" : "I am looking to explore options I have with V bank"
           ]
         }
       ]);
     }
-  }, [isOpen, profile]);
+  }, [isOpen, profile, fromExplore]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -120,6 +120,24 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       } else {
+        if (userChoice.includes("Which card is best for me?")) {
+          setCurrentStep('EXPLORE_STEP_1');
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              sender: 'bot',
+              text: "Based on your recent spending activity, travel appears to be your largest spending category. Most of your travel purchases are related to flights and hotels, followed by dining, groceries and everyday purchases.",
+              isExploreSpendingInfo: true,
+              options: [
+                "Yes, thats correct",
+                "I want to edit my financial info"
+              ]
+            }
+          ]);
+          return;
+        }
+        
         // User chooses loan or explore options -> respond appropriately and guide back to Flow-A
         let redirectionText = "";
         if (userChoice.includes("loan")) {
@@ -143,6 +161,25 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           }
         ]);
       }
+      return;
+    }
+
+    // EXPLORE_STEP_1: User confirmed or edits financial info
+    if (currentStep === 'EXPLORE_STEP_1') {
+      setCurrentStep('FLOW_A_STEP_3');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'bot',
+          text: "That helps narrow down the options.\n\nWhat would you like to get the most value from with a travel card?",
+          options: [
+            "Travel + everyday rewards",
+            "Maxmiise travel booking rewards",
+            "Maximize hotel rewards"
+          ]
+        }
+      ]);
       return;
     }
 
@@ -443,6 +480,36 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
                     return <p key={pIdx}>{paragraph}</p>;
                   })}
 
+                  {/* Explore Spending Info Widget */}
+                  {msg.isExploreSpendingInfo && (
+                    <div className="mt-4 bg-[#F4F3EF] border border-[#E0DED7] rounded-3xl p-5 shadow-xs space-y-4">
+                      <div className="flex items-center space-x-2 text-stone-900 mb-2">
+                        <Info className="w-5 h-5 text-purple-700" />
+                        <h4 className="font-bold text-sm">Your top spending categories</h4>
+                      </div>
+                      
+                      <div className="space-y-3 text-sm text-stone-800 font-medium">
+                        <div className="flex justify-between border-b border-[#E0DED7] pb-2">
+                          <span>Flights</span>
+                          <span>$24,642</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[#E0DED7] pb-2">
+                          <span>Hotels</span>
+                          <span>$50,235</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[#E0DED7] pb-2">
+                          <span>Food and dining</span>
+                          <span>$1,800</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[#E0DED7] pb-2">
+                          <span>Gas</span>
+                          <span>$312.23</span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-bold text-stone-900 mt-4">Does this reflect how you expect to use your card going forward?</p>
+                    </div>
+                  )}
+
                   {/* Single Card Recommendation Widget */}
                   {msg.isCardRecommendation && (
                     <div className="mt-4 bg-[#F4F3EF] border border-[#E0DED7] rounded-3xl p-5 shadow-xs space-y-4">
@@ -584,8 +651,13 @@ export default function ChatOverlay({ profile, isOpen, onClose }) {
           ))}
 
           {isTyping && (
-            <div className="text-stone-500 text-xs italic font-medium pt-1">
-              Credit Compass is typing...
+            <div className="flex items-center space-x-2 text-stone-500 text-[13px] font-bold pt-1">
+              <div className="flex space-x-1 pl-1">
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span className="text-purple-700">Thinking...</span>
             </div>
           )}
           <div ref={messagesEndRef} />

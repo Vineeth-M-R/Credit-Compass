@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import AccountSummary from './AccountSummary';
+import Explore from './Explore';
 import { profiles } from './profileData';
 
 export default function App() {
@@ -21,6 +22,12 @@ export default function App() {
               currentProfile={currentProfile}
               onLogout={() => setCurrentProfile(profiles.alex)}
             />
+          }
+        />
+        <Route
+          path="/explore/:profile"
+          element={
+            <Explore currentProfile={currentProfile} />
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { profiles } from './profileData';
 import ChatOverlay from './ChatOverlay';
+import BottomNav from './BottomNav';
 import {
   Search,
   Bell,
@@ -96,7 +97,10 @@ export default function AccountSummary({ currentProfile, onLogout }) {
         <div className="bg-white border border-[#E0DDD5] rounded-2xl p-4 shadow-xs">
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm font-bold text-stone-900">Open an account</span>
-            <button className="text-xs font-semibold text-purple-900 hover:text-purple-700 flex items-center">
+            <button 
+              onClick={() => navigate(`/explore/${activeProfile.id || 'alex'}`)}
+              className="text-xs font-semibold text-purple-900 hover:text-purple-700 flex items-center"
+            >
               Explore all <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
             </button>
           </div>
@@ -165,34 +169,7 @@ export default function AccountSummary({ currentProfile, onLogout }) {
       </main>
 
       {/* Bottom Sticky Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#F5F4F0] border-t border-[#DCDAD2] py-2 px-3 flex justify-around items-center z-40">
-        <button className="flex flex-col items-center text-red-700">
-          <Home className="w-5 h-5 fill-current" />
-          <span className="text-[10px] font-bold mt-0.5">Accounts</span>
-        </button>
-
-        <button className="flex flex-col items-center text-stone-600 hover:text-stone-950">
-          <ArrowDownLeft className="w-5 h-5" />
-          <span className="text-[10px] font-medium mt-0.5">Deposit</span>
-        </button>
-
-        <button className="flex flex-col items-center text-stone-600 hover:text-stone-950">
-          <div className="w-5 h-5 rounded-full border border-stone-600 flex items-center justify-center font-bold text-[10px]">
-            $
-          </div>
-          <span className="text-[10px] font-medium mt-0.5">Pay & Transfer</span>
-        </button>
-
-        <button className="flex flex-col items-center text-stone-600 hover:text-stone-950">
-          <Compass className="w-5 h-5" />
-          <span className="text-[10px] font-medium mt-0.5">Explore</span>
-        </button>
-
-        <button className="flex flex-col items-center text-stone-600 hover:text-stone-950">
-          <Menu className="w-5 h-5" />
-          <span className="text-[10px] font-medium mt-0.5">Menu</span>
-        </button>
-      </nav>
+      <BottomNav />
 
       {/* Chat Overlay triggered on click of "Need help?" or violet icon */}
       <ChatOverlay
