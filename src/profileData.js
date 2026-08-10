@@ -42,27 +42,5 @@ export const profiles = {
       changeText: "Your FICO® Score went up 8 points",
       updatedDate: "01/18/2026"
     }
-  },
-  clay: {
-    id: "clay",
-    name: "Clay",
-    descriptor: "Credit Card Holder · Reviewing Options",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
-    tier: "Preferred Cardholder",
-    checking: {
-      accountName: "EVERYDAY CHECKING",
-      last4: "9102",
-      balance: 420.00,
-    },
-    creditCard: {
-      accountName: "WELLS FARGO ACTIVE CASH VISA® CARD",
-      last4: "9102",
-      balance: 4320.00,
-    },
-    ficoScore: {
-      score: 685,
-      changeText: "Your FICO® Score went up 12 points",
-      updatedDate: "01/20/2026"
-    }
   }
 };
