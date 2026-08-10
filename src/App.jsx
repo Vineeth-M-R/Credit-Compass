@@ -5,7 +5,7 @@ import AccountSummary from './AccountSummary';
 import { profiles } from './profileData';
 
 export default function App() {
-  const [currentProfile, setCurrentProfile] = useState(profiles.taylor);
+  const [currentProfile, setCurrentProfile] = useState(profiles.alex);
 
   return (
     <BrowserRouter>
@@ -19,7 +19,7 @@ export default function App() {
           element={
             <AccountSummary
               currentProfile={currentProfile}
-              onLogout={() => setCurrentProfile(profiles.taylor)}
+              onLogout={() => setCurrentProfile(profiles.alex)}
             />
           }
         />

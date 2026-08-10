@@ -18,7 +18,7 @@ export default function AccountSummary({ currentProfile, onLogout }) {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = React.useState(false);
 
-  const activeProfile = profiles[profileParam] || currentProfile || profiles.taylor;
+  const activeProfile = profiles[profileParam] || currentProfile || profiles.alex;
 
   return (
     <div className="min-h-screen bg-[#ECEAE4] text-stone-900 flex flex-col max-w-md mx-auto relative shadow-2xl font-sans pb-16">
