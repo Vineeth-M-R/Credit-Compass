@@ -28,7 +28,6 @@ export default function AccountSummary({ currentProfile, onLogout }) {
       <header className="pt-4 px-4 pb-3 flex items-center justify-between bg-[#ECEAE4]">
         {/* "Need help?" Search button with adjacent violet icon */}
         <button
-          onClick={() => setIsChatOpen(true)}
           className="flex items-center space-x-2 bg-white border border-[#D5D3CB] rounded-full px-3 py-1.5 shadow-2xs hover:border-purple-400 transition-all cursor-pointer group"
         >
           <Search className="w-4 h-4 text-stone-400 group-hover:text-purple-600 transition-colors" />
@@ -123,7 +122,7 @@ export default function AccountSummary({ currentProfile, onLogout }) {
             </div>
 
             {/* Credit cards */}
-            <div className="flex flex-col items-center group cursor-pointer">
+            <div onClick={() => setIsChatOpen(true)} className="flex flex-col items-center group cursor-pointer">
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-xl mb-1 group-hover:scale-105 transition-transform">
                 🧧
               </div>
